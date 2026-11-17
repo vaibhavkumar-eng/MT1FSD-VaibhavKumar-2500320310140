@@ -1,5 +1,6 @@
 
 import http from 'http';
+import fs from 'fs';
 
 const vehicles = [
     {
@@ -27,25 +28,21 @@ const vehicles = [
 
 const server = http.createServer((req, res) => {
 
-    // Welcome route
     if (req.url === '/' && req.method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end('<h1>Welcome to Vehicle Management System</h1>');
     }
 
-    // GET all vehicles
     else if (req.url === '/vehicles' && req.method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(vehicles));
     }
 
-    // About route
     else if (req.url === '/about' && req.method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'text/plain' });
         res.end('Vehicle Management System - Node.js Application');
     }
 
-    // POST new vehicle
     else if (req.url === '/add-vehicle' && req.method === 'POST') {
 
         let body = '';
@@ -67,41 +64,74 @@ const server = http.createServer((req, res) => {
                     'price'
                 ];
 
-                const missingField = requiredFields.some(
-                    field => vehicle[field] === undefined ||
-                             vehicle[field] === null ||
-                             vehicle[field] === ''
+                const missingField = requiredFields.some(field =>
+                    vehicle[field] === undefined ||
+                    vehicle[field] === null ||
+                    vehicle[field] === ''
                 );
 
                 if (missingField) {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.writeHead(400, {
+                        'Content-Type': 'application/json'
+                    });
+
                     res.end(JSON.stringify({
                         message: 'All vehicle fields are required'
                     }));
+
                     return;
                 }
 
                 vehicles.push(vehicle);
 
-                res.writeHead(201, { 'Content-Type': 'application/json' });
+                res.writeHead(201, {
+                    'Content-Type': 'application/json'
+                });
+
                 res.end(JSON.stringify({
                     message: 'Vehicle added successfully',
                     vehicle: vehicle
                 }));
 
             } catch (error) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.writeHead(400, {
+                    'Content-Type': 'application/json'
+                });
+
                 res.end(JSON.stringify({
                     message: 'Invalid JSON data'
                 }));
             }
-
         });
     }
 
-    // Invalid route
+    else if (req.url === '/info' && req.method === 'GET') {
+
+        fs.readFile('public/info.html', 'utf8', (error, data) => {
+
+            if (error) {
+                res.writeHead(500, {
+                    'Content-Type': 'text/plain'
+                });
+
+                res.end('Internal Server Error');
+            }
+
+            else {
+                res.writeHead(200, {
+                    'Content-Type': 'text/html'
+                });
+
+                res.end(data);
+            }
+        });
+    }
+
     else {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.writeHead(404, {
+            'Content-Type': 'text/plain'
+        });
+
         res.end('404 - Page Not Found');
     }
 
